@@ -12,7 +12,8 @@ const mongoPass = process.env.MONGO_PASS;
 const mongoDB = process.env.MONGO_DB;
 const mongoHost = process.env.MONGO_HOST;
 
-const mongoUrl = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}`;
+const mongoUrl = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/?retryWrites=true&w=majority`;
+
 
 const client = new MongoClient(mongoUrl);
 let textosCollection;
