@@ -141,9 +141,11 @@
 <script>
   let textoAtual = "";
 
-  function openText(nome, locked) {
+  function openText(nome, locked, elemento) {
+    // Remove classe 'active' de todos os itens
     document.querySelectorAll(".item").forEach(i => i.classList.remove("active"));
-    event.currentTarget.classList.add("active");
+    // Adiciona classe 'active' só no que foi clicado
+    elemento.classList.add("active");
     
     textoAtual = nome;
 
