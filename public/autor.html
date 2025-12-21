@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Autor</title>
+  <style>
+    .item.active {
+      background: #e3efff;
+      border-left: 4px solid #4f4e5a;
+      font-weight: 500;
+}
+
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #ececec;
+      color: #555;
+    }
+    .container {
+      width: 800px;
+      margin: 40px auto;
+      background: #f2f2f2;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .icon {
+      font-size: 64px;
+      color: #6aa4e8;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    .content {
+      display: flex;
+      gap: 40px;
+    }
+    .list {
+      width: 50%;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .item:hover { background: #f5f7fa; }
+    .item:last-child { border-bottom: none; }
+    .lock { color: #999; }
+    .open { color: #aaa; font-style: italic; }
+    .password-box {
+      display: none;
+      width: 50%;
+      background: #f2f2f2;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: inset 0 0 0 1px #d0d0d0;
+    }
+    .password-box label {
+      font-size: 11px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .password-box input {
+      width: 95%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #6aa4e8;
+      border-radius: 6px;
+    }
+    .password-box button {
+      margin-top: 12px;
+      padding: 6px 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      font-size: 13px;
+    }
+    .buttons button {
+      padding: 6px 16px;
+      margin-left: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="icon">✒️</div>
+      <h1>Selecione o Texto de Fábio</h1>
+    </div>
+    <!--LISTA DOS TEXTOS-->
+    <div class="content">
+      <div class="list">
+        <div class="item" onclick="openText('texto1', true)">texto1 <span class="lock">🔒</span></div>
+        <div class="item" onclick="openText('texto2', true)">texto2 <span class="lock">🔒</span></div>
+        <div class="item" onclick="openText('texto3', false)">texto3 <span class="open">NA</span></div>
+        <div class="item" onclick="openText('texto4', true)">texto4 <span class="lock">🔒</span></div>
+        <div class="item" onclick="openText('texto5', false)">texto5 <span class="open">NA</span></div>
+        <div class="item" onclick="openText('texto6', true)">texto6 <span class="lock">🔒</span></div>
+      </div>
+
+      <div class="password-box" id="passwordBox">
+        <label>Senha do Texto:</label>
+        <input type="password" id="passwordInput" placeholder="Digite a senha..." />
+        <button onclick="checkPassword()">Continuar</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Outra opção de caminho</div>
+      <div class="buttons">
+        <button onclick="voltarMenu()">Voltar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let textoAtual = "";
+
+  function openText(nome, locked) {
+    document.querySelectorAll(".item").forEach(i => i.classList.remove("active"));
+    event.currentTarget.classList.add("active");
+    
+    textoAtual = nome;
+
+    if (!locked) {
+      buscarTextoSemSenha();
+      return;
+    }
+
+    document.getElementById("passwordBox").style.display = "block";
+    document.getElementById("passwordInput").value = "";
+  }
+
+  async function buscarTextoSemSenha() {
+    const resposta = await fetch("/texto-livre/" + textoAtual);
+
+    if (!resposta.ok) {
+      alert("Texto não encontrado");
+      return;
+    }
+
+    const dados = await resposta.json();
+    mostrarTexto(dados.conteudo);
+  }
+
+  async function checkPassword() {
+    const senha = document.getElementById("passwordInput").value;
+
+    const resposta = await fetch("/verificar-texto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: textoAtual,
+        senha: senha
+      })
+    });
+
+    if (!resposta.ok) {
+      alert("Senha incorreta");
+      return;
+    }
+
+    const dados = await resposta.json();
+    mostrarTexto(dados.conteudo);
+  }
+
+  function mostrarTexto(conteudo) {
+    document.body.innerHTML = `
+      <div style="max-width:800px;margin:40px auto;font-family:sans-serif">
+        ${conteudo}
+        <br><br>
+        <button onclick="location.reload()">Voltar</button>
+      </div>
+    `;
+  }
+
+  function voltarMenu() {
+    window.location = "menu.html";
+  }
+</script>
+
+
+
+</body>
+</html>
