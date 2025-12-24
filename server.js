@@ -50,13 +50,13 @@ app.get("/autor", (req, res) => {
 });
 
 app.get("/api/texto", async (req, res) => {
-  const client = new MongoClient(mongoUrl);
-  await client.connect();
-  const db = client.db("fqgurgeldb");
-  const texto = await db.collection("textos").findOne({});
-  res.json(texto);
+  try {
+    const texto = await db.collection("textos").findOne({});
+    res.json(texto);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar dados" });
+  }
 });
-
 
 //  TEXTO COM SENHA
 app.post("/verificar-texto", async (req, res) => {
