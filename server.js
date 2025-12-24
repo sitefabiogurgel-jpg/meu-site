@@ -5,7 +5,7 @@ require("dotenv").config(); // <- lê variáveis do .env
 
 const app = express();
 app.use(express.json());
-
+app.use(express.static(path.join(__dirname, "public")));
 //  CONEXÃO MONGODB
 const mongoUser = process.env.MONGO_USER;
 const mongoPass = process.env.MONGO_PASS;
