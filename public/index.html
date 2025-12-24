@@ -25,6 +25,15 @@
     "name": "",
     "url": "/"
   }
+
+
+    fetch("/api/texto")
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("conteudo").innerText = data.conteudo;
+      });
+
+
   </script>
 
   <meta name="theme-color" content="#ec8700">
