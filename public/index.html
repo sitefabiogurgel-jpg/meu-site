@@ -31,6 +31,9 @@
       .then(res => res.json())
       .then(data => {
         document.getElementById("conteudo").innerText = data.conteudo;
+      })
+      .catch(() => {
+        document.getElementById("conteudo").innerText = "Erro ao carregar";
       });
 
 
