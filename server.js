@@ -49,6 +49,15 @@ app.get("/autor", (req, res) => {
   res.sendFile(path.join(__dirname, "public/autor.html"));
 });
 
+app.get("/api/texto", async (req, res) => {
+  const client = new MongoClient(mongoUrl);
+  await client.connect();
+  const db = client.db("fqgurgeldb");
+  const texto = await db.collection("textos").findOne({});
+  res.json(texto);
+});
+
+
 //  TEXTO COM SENHA
 app.post("/verificar-texto", async (req, res) => {
   const { nome, senha } = req.body;
