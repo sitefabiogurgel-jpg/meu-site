@@ -142,51 +142,57 @@
   let textoAtual = "";
 
   function openText(nome, locked) {
-    document.querySelectorAll(".item").forEach(i => i.classList.remove("active"));
+    document.querySelectorAll(".item").forEach(i =>
+      i.classList.remove("active")
+    );
+
     event.currentTarget.classList.add("active");
-    
+
     textoAtual = nome;
+
+    document.getElementById("passwordBox").style.display =
+      locked ? "block" : "none";
+
+    document.getElementById("passwordInput").value = "";
 
     if (!locked) {
       buscarTextoSemSenha();
-      return;
     }
-
-    document.getElementById("passwordBox").style.display = "block";
-    document.getElementById("passwordInput").value = "";
   }
 
   async function buscarTextoSemSenha() {
-    const resposta = await fetch("/texto-livre/" + textoAtual);
+    try {
+      const resposta = await fetch("/texto-livre/" + encodeURIComponent(textoAtual));
 
-    if (!resposta.ok) {
+      if (!resposta.ok) throw new Error();
+
+      const dados = await resposta.json();
+      mostrarTexto(dados.conteudo);
+    } catch {
       alert("Texto não encontrado");
-      return;
     }
-
-    const dados = await resposta.json();
-    mostrarTexto(dados.conteudo);
   }
 
   async function checkPassword() {
     const senha = document.getElementById("passwordInput").value;
 
-    const resposta = await fetch("/verificar-texto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nome: textoAtual,
-        senha: senha
-      })
-    });
+    try {
+      const resposta = await fetch("/verificar-texto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: textoAtual,
+          senha: senha
+        })
+      });
 
-    if (!resposta.ok) {
+      if (!resposta.ok) throw new Error();
+
+      const dados = await resposta.json();
+      mostrarTexto(dados.conteudo);
+    } catch {
       alert("Senha incorreta");
-      return;
     }
-
-    const dados = await resposta.json();
-    mostrarTexto(dados.conteudo);
   }
 
   function mostrarTexto(conteudo) {
@@ -203,8 +209,6 @@
     window.location = "index.html";
   }
 </script>
-
-
 
 </body>
 </html>
