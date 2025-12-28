@@ -105,15 +105,22 @@ app.post("/verificar-texto", async (req, res) => {
   }
 });
 
-// (opcional) pega qualquer texto
-app.get("/api/texto", async (req, res) => {
+app.get("/api/texto/:nome", async (req, res) => {
+  const { nome } = req.params;
+
   try {
-    const texto = await textosCollection.findOne({});
+    const texto = await textosCollection.findOne({ nome });
+
+    if (!texto) {
+      return res.status(404).json({ erro: "Texto não encontrado" });
+    }
+
     res.json(texto);
   } catch (err) {
-    res.status(500).json({ error: "Erro ao buscar dados" });
+    res.status(500).json({ erro: "Erro ao buscar texto" });
   }
 });
+
 
 /* ======================
    INICIAR SERVIDOR
