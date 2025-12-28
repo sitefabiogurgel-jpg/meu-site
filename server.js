@@ -66,7 +66,7 @@ app.get("/autor", (req, res) => {
 ====================== */
 
 // 🔓 TEXTO LIVRE → senha vazia ""
-app.get("/texto-livre/:nome", async (req, res) => {
+app.get("/textos/:id", async (req, res) => {
   const { nome } = req.params;
 
   try {
@@ -86,8 +86,8 @@ app.get("/texto-livre/:nome", async (req, res) => {
 });
 
 // 🔐 TEXTO PRIVADO → senha obrigatória
-app.post("/verificar-texto", async (req, res) => {
-  const { nome, senha } = req.body;
+app.post("/textos", async (req, res) => {
+  const { id, senha } = req.body;
 
   try {
     const texto = await textosCollection.findOne({
@@ -105,11 +105,11 @@ app.post("/verificar-texto", async (req, res) => {
   }
 });
 
-app.get("/api/texto/:nome", async (req, res) => {
-  const { nome } = req.params;
+app.get("/api/textos/:id", async (req, res) => {
+  const { id } = req.params;
 
   try {
-    const texto = await textosCollection.findOne({ nome });
+    const texto = await textosCollection.findOne({ id });
 
     if (!texto) {
       return res.status(404).json({ erro: "Texto não encontrado" });
