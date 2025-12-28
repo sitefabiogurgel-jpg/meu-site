@@ -1,38 +1,50 @@
 const express = require("express");
 const { MongoClient } = require("mongodb");
 const path = require("path");
-require("dotenv").config(); // <- lê variáveis do .env
+require("dotenv").config();
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
-//  CONEXÃO MONGODB
+
+/* ======================
+   VARIÁVEIS MONGODB
+====================== */
+
 const mongoUser = process.env.MONGO_USER;
 const mongoPass = process.env.MONGO_PASS;
-const mongoDB = process.env.MONGO_DB;
-const mongoHost = process.env.MONGO_HOST;
+const mongoHost = process.env.MONGO_HOST; // dbgurgel.xxxxx.mongodb.net
+const mongoDB   = process.env.MONGO_DB;   // fqgurgeldb
 
-
-
+const mongoUrl =
+  `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDB}?retryWrites=true&w=majority`;
 
 const client = new MongoClient(mongoUrl);
+
 let textosCollection;
+
+/* ======================
+   CONEXÃO MONGODB
+====================== */
 
 async function conectarMongo() {
   try {
     await client.connect();
-    console.log("Conectado ao MongoDB Atlas");
-
     const db = client.db(mongoDB);
     textosCollection = db.collection("textos");
+
+    console.log("✅ MongoDB conectado no banco:", mongoDB);
   } catch (err) {
-    console.error("Erro ao conectar no Mongo:", err);
+    console.error("❌ Erro ao conectar no MongoDB:", err);
   }
 }
 
 conectarMongo();
 
-//  ROTAS HTML
+/* ======================
+   ROTAS HTML
+====================== */
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
@@ -49,82 +61,71 @@ app.get("/autor", (req, res) => {
   res.sendFile(path.join(__dirname, "public/autor.html"));
 });
 
+/* ======================
+   ROTAS API
+====================== */
+
+// 🔓 TEXTO LIVRE → senha vazia ""
+app.get("/texto-livre/:nome", async (req, res) => {
+  const { nome } = req.params;
+
+  try {
+    const texto = await textosCollection.findOne({
+      nome,
+      senha: ""
+    });
+
+    if (!texto) {
+      return res.status(404).json({ erro: "Texto livre não encontrado" });
+    }
+
+    res.json({ conteudo: texto.conteudo });
+  } catch (err) {
+    res.status(500).json({ erro: "Erro no servidor" });
+  }
+});
+
+// 🔐 TEXTO PRIVADO → senha obrigatória
+app.post("/verificar-texto", async (req, res) => {
+  const { nome, senha } = req.body;
+
+  try {
+    const texto = await textosCollection.findOne({
+      nome,
+      senha
+    });
+
+    if (!texto) {
+      return res.status(401).json({ erro: "Nome ou senha incorretos" });
+    }
+
+    res.json({ conteudo: texto.conteudo });
+  } catch (err) {
+    res.status(500).json({ erro: "Erro no servidor" });
+  }
+});
+
+// (opcional) pega qualquer texto
 app.get("/api/texto", async (req, res) => {
   try {
-    const texto = await db.collection("textos").findOne({});
+    const texto = await textosCollection.findOne({});
     res.json(texto);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar dados" });
   }
 });
 
-//  TEXTO COM SENHA
-app.post("/verificar-texto", async (req, res) => {
-  const { nome, senha } = req.body;
+/* ======================
+   INICIAR SERVIDOR
+====================== */
 
-  console.log("Verificando:", nome, senha);
-
-  const texto = await textosCollection.findOne({
-    nome: nome,
-    senha: senha
-  });
-
-  if (!texto) {
-    return res.status(401).json({ erro: "Senha incorreta" });
-  }
-
-  res.json({ conteudo: texto.conteudo });
-});
-
-//  TEXTO SEM SENHA
-app.get("/texto-livre/:nome", async (req, res) => {
-  const { nome } = req.params;
-
-  console.log("Texto livre:", nome);
-
-  const texto = await textosCollection.findOne({ nome });
-
-  if (!texto) {
-    return res.status(404).json({ erro: "Texto não encontrado" });
-  }
-
-  res.json({ conteudo: texto.conteudo });
-});
-
-//  INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
 
+// fallback
 app.use((req, res) => {
   res.redirect("/");
 });
 
-import { MongoClient } from "mongodb";
-
-const mongoUser = process.env.MONGO_USER;
-const mongoPass = process.env.MONGO_PASS;
-const mongoHost = process.env.MONGO_HOST;
-const mongoDB   = process.env.MONGO_DB;
-
-const mongoUrl =
-  `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDB}?retryWrites=true&w=majority`;
-
-const client = new MongoClient(mongoUrl);
-
-let db;
-
-async function conectarMongo() {
-  try {
-    await client.connect();
-    db = client.db(mongoDB);
-    console.log("✅ MongoDB conectado no banco:", mongoDB);
-  } catch (err) {
-    console.error("❌ Erro ao conectar no MongoDB:", err);
-  }
-}
-
-conectarMongo();
-
-export { db };
