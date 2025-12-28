@@ -27,7 +27,6 @@ async function conectarMongo() {
 }
 
 conectarMongo();
-const path = require("path");
 
 /* ======================
    ROTAS HTML
