@@ -12,7 +12,7 @@ const mongoPass = process.env.MONGO_PASS;
 const mongoDB = process.env.MONGO_DB;
 const mongoHost = process.env.MONGO_HOST;
 
-const mongoUrl = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/?retryWrites=true&w=majority`;
+
 
 
 const client = new MongoClient(mongoUrl);
@@ -100,3 +100,31 @@ app.listen(PORT, () => {
 app.use((req, res) => {
   res.redirect("/");
 });
+
+import { MongoClient } from "mongodb";
+
+const mongoUser = process.env.MONGO_USER;
+const mongoPass = process.env.MONGO_PASS;
+const mongoHost = process.env.MONGO_HOST;
+const mongoDB   = process.env.MONGO_DB;
+
+const mongoUrl =
+  `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDB}?retryWrites=true&w=majority`;
+
+const client = new MongoClient(mongoUrl);
+
+let db;
+
+async function conectarMongo() {
+  try {
+    await client.connect();
+    db = client.db(mongoDB);
+    console.log("✅ MongoDB conectado no banco:", mongoDB);
+  } catch (err) {
+    console.error("❌ Erro ao conectar no MongoDB:", err);
+  }
+}
+
+conectarMongo();
+
+export { db };
