@@ -27,13 +27,29 @@ async function conectarMongo() {
 }
 
 conectarMongo();
+const path = require("path");
 
 /* ======================
    ROTAS HTML
 ====================== */
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
+
+app.get("/autor", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/autor.html"));
+});
+
+app.get("/contato", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/contato.html"));
+});
+
+/* página individual de texto */
+app.get("/texto/:slug", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/texto.html"));
+});
+
 
 /* ======================
    API DE TEXTOS
