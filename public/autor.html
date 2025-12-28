@@ -141,57 +141,64 @@
 <script>
   let textoAtual = "";
 
-  function openText(nome, locked) {
-    document.querySelectorAll(".item").forEach(i =>
-      i.classList.remove("active")
-    );
-
-    event.currentTarget.classList.add("active");
-
+  async function openText(id) {
     textoAtual = id;
 
-    document.getElementById("passwordBox").style.display =
-      locked ? "block" : "none";
-
+    // esconde senha sempre ao clicar
+    document.getElementById("passwordBox").style.display = "none";
     document.getElementById("passwordInput").value = "";
 
-    if (!locked) {
-      buscarTextoSemSenha();
-    }
-  }
-
-  async function buscarTextoSemSenha() {
     try {
-      const resposta = await fetch("/texto-livre/" + encodeURIComponent(textoAtual));
+      const res = await fetch("/texto/" + id);
 
-      if (!resposta.ok) throw new Error();
+      // 🔒 TEXTO COM SENHA
+      if (res.status === 401) {
+        document.getElementById("passwordBox").style.display = "block";
+        return;
+      }
 
-      const dados = await resposta.json();
+      if (!res.ok) {
+        alert("Texto não encontrado");
+        return;
+      }
+
+      // 📄 TEXTO LIVRE
+      const dados = await res.json();
       mostrarTexto(dados.conteudo);
-    } catch {
-      alert("Texto não encontrado");
+
+    } catch (err) {
+      alert("Erro ao conectar com o servidor");
     }
   }
 
   async function checkPassword() {
     const senha = document.getElementById("passwordInput").value;
 
+    if (!senha) {
+      alert("Digite a senha");
+      return;
+    }
+
     try {
-      const resposta = await fetch("/verificar-texto", {
+      const res = await fetch("/texto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nome: textoAtual,
-          senha: senha
+          id: textoAtual,
+          senha
         })
       });
 
-      if (!resposta.ok) throw new Error();
+      if (!res.ok) {
+        alert("Senha incorreta");
+        return;
+      }
 
-      const dados = await resposta.json();
+      const dados = await res.json();
       mostrarTexto(dados.conteudo);
-    } catch {
-      alert("Senha incorreta");
+
+    } catch (err) {
+      alert("Erro ao verificar senha");
     }
   }
 
@@ -206,9 +213,10 @@
   }
 
   function voltarMenu() {
-    window.location = "index.html";
+    window.location = "/";
   }
 </script>
+
 
 </body>
 </html>
