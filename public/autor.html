@@ -140,17 +140,18 @@
   </div>
 
 <script>
-const textoAtual = window.location.pathname.split("/").pop();
-const conteudoDiv = document.getElementById("conteudo");
+const idTexto = window.location.pathname.split("/").pop();
+
+const conteudo = document.getElementById("conteudo");
 const passwordBox = document.getElementById("passwordBox");
 const senhaInput = document.getElementById("senha");
-const erroDiv = document.getElementById("erro");
+const erro = document.getElementById("erro");
 
-// tenta abrir o texto
-fetch(`/api/texto/${textoAtual}`)
-  .then(async res => {
+// BUSCAR TEXTO NO MONGO
+fetch(`/api/texto/${idTexto}`)
+  .then(async (res) => {
     if (res.status === 401) {
-      // texto protegido → mostra campo de senha
+      // texto protegido
       passwordBox.style.display = "block";
       return;
     }
@@ -160,18 +161,18 @@ fetch(`/api/texto/${textoAtual}`)
     }
 
     const data = await res.json();
-    conteudoDiv.innerHTML = data.conteudo;
+    conteudo.innerHTML = data.conteudo;
   })
   .catch(() => {
-    conteudoDiv.innerText = "Texto não encontrado";
+    conteudo.innerText = "Texto não encontrado";
   });
 
-// enviar senha
+// ENVIAR SENHA
 async function enviarSenha() {
   const senha = senhaInput.value.trim();
 
   if (!senha) {
-    erroDiv.innerText = "Digite a senha";
+    erro.innerText = "Digite a senha";
     return;
   }
 
@@ -179,22 +180,19 @@ async function enviarSenha() {
     const res = await fetch("/api/texto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: textoAtual,
-        senha
-      })
+      body: JSON.stringify({ id: idTexto, senha })
     });
 
-    if (!res.ok) {
-      erroDiv.innerText = "Senha incorreta";
+    if (res.status !== 200) {
+      erro.innerText = "Senha incorreta";
       return;
     }
 
     const data = await res.json();
     passwordBox.style.display = "none";
-    conteudoDiv.innerHTML = data.conteudo;
+    conteudo.innerHTML = data.conteudo;
   } catch {
-    erroDiv.innerText = "Erro no servidor";
+    erro.innerText = "Erro no servidor";
   }
 }
 </script>
