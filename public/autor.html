@@ -140,82 +140,63 @@
   </div>
 
 <script>
-  let textoAtual = "";
+const textoAtual = window.location.pathname.split("/").pop();
+const conteudoDiv = document.getElementById("conteudo");
+const passwordBox = document.getElementById("passwordBox");
+const senhaInput = document.getElementById("senha");
+const erroDiv = document.getElementById("erro");
 
-  async function openText(id) {
-    textoAtual = id;
-
-    // esconde senha sempre ao clicar
-    document.getElementById("passwordBox").style.display = "none";
-    document.getElementById("passwordInput").value = "";
-
-    try {
-      const res = await fetch("/texto/" + id);
-
-      // 🔒 TEXTO COM SENHA
-      if (res.status === 401) {
-        document.getElementById("passwordBox").style.display = "block";
-        return;
-      }
-
-      if (!res.ok) {
-        alert("Texto não encontrado");
-        return;
-      }
-
-      // 📄 TEXTO LIVRE
-      const dados = await res.json();
-      mostrarTexto(dados.conteudo);
-
-    } catch (err) {
-      alert("Erro ao conectar com o servidor");
-    }
-  }
-
-  async function checkPassword() {
-    const senha = document.getElementById("passwordInput").value;
-
-    if (!senha) {
-      alert("Digite a senha");
+// tenta abrir o texto
+fetch(`/api/texto/${textoAtual}`)
+  .then(async res => {
+    if (res.status === 401) {
+      // texto protegido → mostra campo de senha
+      passwordBox.style.display = "block";
       return;
     }
 
-    try {
-      const res = await fetch("/texto", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: textoAtual,
-          senha
-        })
-      });
-
-      if (!res.ok) {
-        alert("Senha incorreta");
-        return;
-      }
-
-      const dados = await res.json();
-      mostrarTexto(dados.conteudo);
-
-    } catch (err) {
-      alert("Erro ao verificar senha");
+    if (!res.ok) {
+      throw new Error();
     }
+
+    const data = await res.json();
+    conteudoDiv.innerHTML = data.conteudo;
+  })
+  .catch(() => {
+    conteudoDiv.innerText = "Texto não encontrado";
+  });
+
+// enviar senha
+async function enviarSenha() {
+  const senha = senhaInput.value.trim();
+
+  if (!senha) {
+    erroDiv.innerText = "Digite a senha";
+    return;
   }
 
-  function mostrarTexto(conteudo) {
-    document.body.innerHTML = `
-      <div style="max-width:800px;margin:40px auto;font-family:sans-serif">
-        ${conteudo}
-        <br><br>
-        <button onclick="location.reload()">Voltar</button>
-      </div>
-    `;
-  }
+  try {
+    const res = await fetch("/api/texto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: textoAtual,
+        senha
+      })
+    });
 
-  function voltarMenu() {
-    window.location = "/";
+    if (!res.ok) {
+      erroDiv.innerText = "Senha incorreta";
+      return;
+    }
+
+    const data = await res.json();
+    passwordBox.style.display = "none";
+    conteudoDiv.innerHTML = data.conteudo;
+  } catch {
+    erroDiv.innerText = "Erro no servidor";
   }
+}
 </script>
 
 
